@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'corsheaders',
+    'rest_framework.authtoken' #Sistema de autenticação baseado em tokens, podemos usar para gerar acessos controlados a usuarios em hierarquias diferentes.
 ]
 
 #Camada responsavel por fazer 
@@ -53,6 +54,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware', 
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True #Para desenvolvimento, você pode permitir todas as origens, mas em produção é melhor deixar definido quais origens podem fazer requisições para o backend.
 
 ROOT_URLCONF = 'maria_backend.urls'
 
@@ -128,4 +131,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Serve para uso do modelo usuario em /core/models.py
 AUTH_USER_MODEL = 'core.Usuario'
+
+REST_FRAMEWORK = { #Configuração para autenticação padrão por Token no REST_FRAMEWORK
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
