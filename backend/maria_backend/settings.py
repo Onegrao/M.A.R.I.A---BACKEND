@@ -125,3 +125,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Serve para uso do modelo usuario em /core/models.py
+AUTH_USER_MODEL = 'core.Usuario'
+

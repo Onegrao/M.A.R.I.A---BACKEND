@@ -10,7 +10,7 @@ class Maquina(models.Model):
     marca = models.CharField(max_length = 100)
     nome = models.CharField(max_length = 100)
     apelido = models.CharField(max_length=100, blank=True, null=True)
-    data__entrada = models.DateField()
+    data_entrada = models.DateField()
 
     def __str__(self):
         return self.nome
