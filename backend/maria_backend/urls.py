@@ -19,5 +19,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('core/', include('api.urls')), #API acessivel em /core/maquinas/ e /core/usuarios/
+    path('core/', include('core.urls')), #API acessivel em /core/maquinas/ e /core/usuarios/
 ]
