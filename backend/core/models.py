@@ -4,6 +4,11 @@ from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
 class Maquina(models.Model):
+    STATUS_CHOICES = [
+        ('corretiva', 'Corretiva'),
+        ('preventiva', 'Realizar Preventiva'),
+        ('desligada', 'Desligada'),
+    ]
     setor = models.CharField(max_length=100)
     cod_serie = models.IntegerField(unique=True)
     funcao = models.CharField(max_length = 100)

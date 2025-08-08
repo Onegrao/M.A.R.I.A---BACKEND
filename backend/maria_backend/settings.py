@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 #Camada responsavel por fazer 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,7 +52,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware', 
 ]
 
 ROOT_URLCONF = 'maria_backend.urls'
@@ -79,8 +79,12 @@ WSGI_APPLICATION = 'maria_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db_maquinas',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': '5433',
     }
 }
 
@@ -129,3 +133,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #Serve para uso do modelo usuario em /core/models.py
 AUTH_USER_MODEL = 'core.Usuario'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200", ]  # Endereço padrão do Angular
