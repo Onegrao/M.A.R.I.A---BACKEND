@@ -14,11 +14,3 @@ class Maquina(models.Model):
 
     def __str__(self):
         return self.nome
-
-class Usuario(AbstractUser):
-    email = models.EmailField(unique=True)
-    cargo = models.CharField(max_length=100, blank=True, null=True)
-    empresa = models.CharField(max_length=100, blank=True, null=True)
-    
-    def __str__(self):
-        return self.email

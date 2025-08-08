@@ -129,15 +129,15 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#Serve para uso do modelo usuario em /core/models.py
+#Serve para uso do modelo usuario em /core/models/usuario.py
 AUTH_USER_MODEL = 'core.Usuario'
 
 REST_FRAMEWORK = { #Configuração para autenticação padrão por Token no REST_FRAMEWORK
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        #'rest_framework.authentication.TokenAuthentication', #Deixando apenas comentado para posteiormente utilizar autenticação e deixar seguro
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny', #IsAuthenticated quando for autenticado
     ],
 }
 
