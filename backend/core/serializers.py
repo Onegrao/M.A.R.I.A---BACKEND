@@ -10,7 +10,7 @@ class MaquinaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Maquina
-        fields = '__all__'
+        fields = ['id', 'nome', 'modelo', 'fabricante', 'ano', 'descricao', 'status']
 
 class UsuarioSerializer(serializers.ModelSerializer):
 

@@ -5,7 +5,7 @@ from rest_framework.routers import DefaultRouter
 from .views import MaquinaViewSet,UsuarioViewSet
 
 router = DefaultRouter() #Nao sei pq isso aqui precisar existir kkk
-router.register(r'Maquinas',MaquinaViewSet)
+router.register(r'maquinas', MaquinaViewSet, basename='maquina')
 router.register(r'Usuarios',UsuarioViewSet)
 
 urlpatterns = [
