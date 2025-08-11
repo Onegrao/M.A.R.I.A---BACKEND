@@ -9,8 +9,8 @@ from .models import Maquina,Usuario
 class MaquinaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Maquina
-        fields = ['id', 'nome', 'modelo', 'fabricante', 'ano', 'descricao', 'status']
+        model = Maquina #adicionei status que estava faltando
+        fields = ['id', 'nome', 'apelido', 'status', 'setor', 'cod_serie', 'funcao', 'marca', 'data_entrada']
 
 class UsuarioSerializer(serializers.ModelSerializer):
 

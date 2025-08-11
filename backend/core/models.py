@@ -17,6 +17,8 @@ class Maquina(models.Model):
     apelido = models.CharField(max_length=100, blank=True, null=True)
     data_entrada = models.DateField()
 
+    # Linha adicionada
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='desligada')
     def __str__(self):
         return self.nome
 
