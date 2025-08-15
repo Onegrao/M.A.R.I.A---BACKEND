@@ -3,7 +3,9 @@ from rest_framework import viewsets
 from .models import Maquina,Usuario, ConfiguracoesUsuario
 from .serializers import MaquinaSerializer,UsuarioSerializer, PerfilUsuarioSerializer,ConfiguracoesUsuarioSerializer
 from rest_framework.generics import RetrieveUpdateAPIView #serve p/ buscar (GET) e atualizar (PUT/PATCH) um único objeto
-from rest_framework.permissions import IsAuthenticated #restringir o acesso de uma view
+from rest_framework.permissions import IsAuthenticated, IsAdminUser #so admin pode ter acesso
+# #restringir o acesso de uma view
+
 # Create your views here.
 
 class MaquinaViewSet(viewsets.ModelViewSet):
@@ -11,6 +13,7 @@ class MaquinaViewSet(viewsets.ModelViewSet):
     serializer_class = MaquinaSerializer
 
 class UsuarioViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser] #view restrita so pra adm
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 

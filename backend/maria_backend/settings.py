@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+# timedelta define o tempo de vida do token.
+from datetime import timedelta
 
 load_dotenv()
 
@@ -139,3 +141,24 @@ AUTH_USER_MODEL = 'core.Usuario'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200", ]  # Endereço padrão do Angular
+
+REST_FRAMEWORK = {
+    # a API vai usar SOMENTE a autenticação por Token JWT.
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    # Ninguém pode acessar nenhum endpoint sem um token JWT válido,
+    # a menos que uma view específica diga o contrário.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+SIMPLE_JWT = {
+    #o token de acesso normal dura 60 minutos.
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    #o token de atualização (para gerar novos tokens de acesso) dura 1 dia.
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    # Qnd for criar um token de login, usar esse serializer.
+    "TOKEN_OBTAIN_SERIALIZER": "core.serializers.MyTokenObtainPairSerializer",
+}
