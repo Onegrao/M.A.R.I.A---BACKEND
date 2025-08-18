@@ -31,11 +31,11 @@ def on_message(client, userdata, msg):
     
     except json.JSONDecodeError:
         print(f"Erro ao decodificar O JSON: {msg.payload}")
-    except requests.exceptions.RequestsException as e:
+    except requests.exceptions.RequestException as e:
         print(f"Erro ao enviar requisição HTTP para o Django: {e}")
 
 def main():
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1) #VERSION1 serve para compatibilidade
+    client = mqtt.Client(protocol=mqtt.MQTTv5)
     client.on_connect = on_connet
     client.on_message = on_message
 
