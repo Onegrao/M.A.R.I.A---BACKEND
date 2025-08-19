@@ -1,15 +1,18 @@
-import requests
+#import requests
 import numpy as np
 import time
 import random
 import json
+import paho.mqtt.client as mqtt
 from datetime import datetime
 
+BROKER_ADDRESS = "localhost" #IP do broker
+BROKER_PORT = 1883
+TOPIC = "maquina/dados" #Mesmo topico para onde o simulador envia
 
-#BACKEND_URL = 'http://localhost:8000/api/sensores' #Endpoint do back para anlise de dados
 
 NUM_MACHINES = 2 #ALTERAR ESSA INFORMAÇÃO DE ACORDO COM AS MAQUINAS INSERIDADS NO SISTEMA
-SIMULATION_INTERVAL = 1 #Tempo de simulação
+SIMULATION_INTERVAL = 5 #Tempo de simulação
 
 
 MACHINE_CONFIG = { #Parametros normais das maquinas
@@ -29,63 +32,80 @@ MACHINE_CONFIG = { #Parametros normais das maquinas
     }
 }
 
+machine_states = {f'machine_{i+1}': None for i in range(NUM_MACHINES)} #Armazena o ultimo estado de cada maquina
 
 
 def generate_sensor_data(machine_id, last_data=None):
     config = MACHINE_CONFIG.get(machine_id)
+    last_data = machine_states[machine_id]
 
     if last_data is None:
         last_data = {key: config[key]['base'] for key in config}
-    
     current_time = datetime.now().strftime("%H:%M:%S %d%Y-%m")
-
 
     data = {
         'machine_id': machine_id,
         'timestamp': current_time,
     }
 
+    new_state = {}
     for sensor, params in config.items():
         noise = np.random.normal(loc=0, scale=params['noise'])
         drift = params['drift']
-        new_value = last_data.get(sensor, params['base'])
+        new_value = last_data[sensor] + noise + params['drift']
 
+        new_state[sensor] = new_value
         data[sensor] = round(max(0, new_value), 2)
 
+    machine_states[machine_id] = new_state
     return data
 
-#def send_data_to_backend(data):
+#Logica de publish no broker MQTT
+def publish_data_to_mqtt(client, topic, data):
+    try:
+        json_payload = json.dumps(data)
+        client.publish(topic, json_payload)
+        print(f"Dados publicados no tópico {topic}: {json_payload}")
+    except Exception as e:
+        print(f"Erro ao publicar dados no MQTT: {e}")
 
-#    try :
-        #response = requests.post(BACKEND_URL, json=data, timeout=5)
-        #response.raise_for_status()
-        #print(f"Dados enviados com sucesso: {data} -> Reposta do backend: {response.status_code}")
-#        print(f"Dados enviados: {data}")
-#    except requests.exceptions.RequestException as e:
-#        print(f"Erro ao enviar dados: {e}")
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Conectado ao broker MQTT com sucesso.")
+    else:
+        print(f"Falha ao conectar ao broker MQTT, código de retorno: {rc}")
+
 
 
 if __name__ == "__main__":
     print(f"Iniciando a simulação para {NUM_MACHINES} máquinas...")
 
-    # Armazena o último estado de cada máquina para simular a deriva
-    current_state = {f'machine_{i+1}': None for i in range(NUM_MACHINES)} 
+    client = mqtt.Client(protocol=mqtt.MQTTv5)
+    client.on_connect = on_connect
 
     try:
+        client.connect(BROKER_ADDRESS, BROKER_PORT,60)
+        client.loop_start()
+    except Exception as e:
+        print(f"Erro ao conectar ao broker MQTT: {e}")
+        exit()
+    
+    try:
         while True:
-            for machine_id in current_state.keys():
+            for machine_id in machine_states.keys():
+                sensor_data = generate_sensor_data(machine_id)
 
-                sensor_data = generate_sensor_data(machine_id, current_state[machine_id])
-                    
+                #Monta o tópico especifico para cada máquina
+                topic = f"{TOPIC}/{machine_id}"
 
-                current_state[machine_id] = {
-                    key: sensor_data[key] for key in sensor_data if key not in ['machine_id', 'timestamp']
-                }
+                #Publica os dados no broker MQTT
+                publish_data_to_mqtt(client, topic, sensor_data)
 
-                print(f"Dados gerados para {machine_id}: {json.dumps(sensor_data, indent=2)}")
-            
-            # Espera 1 segundo antes de enviar a próxima leva de dados
-            print("-" * 50)
-            time.sleep(15)
+                print("-" * 50)
+                time.sleep(SIMULATION_INTERVAL)  # Espera o intervalo de simulação antes de gerar novos dados
     except KeyboardInterrupt:
-        print("\nSimulação encerrada pelo usuário.")
+        print("Simulação interrompida pelo usuário.")
+    finally:
+        client.loop_stop()
+        client.disconnect()
+        print("Desconectado do broker MQTT.")
