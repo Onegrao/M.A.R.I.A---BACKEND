@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
 from rest_framework import viewsets, status
-from .models import Maquina,Usuario
-from .serializers import MaquinaSerializer,UsuarioSerializer
+from .models import Maquina,Usuario,sensor_data_store
+from .serializers import MaquinaSerializer,UsuarioSerializer,DadosMaquinaSerializer
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -18,6 +18,19 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     
+#View para receber dados da maquina
+class DadosMaquinaCreateView(generics.CreateAPIView):
+    queryset = sensor_data_store.objects.all()
+    serializer_class = DadosMaquinaSerializer
+
+    def create(self, request, *args, **kwargs):
+        #Aqui podemos enviar os dados para a analise
+        dados = request.data
+        print(f"Dados recebidos para análise: {dados}")
+              
+        headers = self.get_sucess_headers(serializer.data)
+        return Response(serializer.data, status=201, headers=headers)
+
     
 #Parte para cuidar da autenticação
 
