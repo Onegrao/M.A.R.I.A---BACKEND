@@ -1,15 +1,16 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
 from rest_framework import viewsets, status
-from .models import Maquina,Usuario,sensor_data_store
-from .serializers import MaquinaSerializer,UsuarioSerializer,DadosMaquinaSerializer
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from .models import Maquina, Usuario
+from .serializers import MaquinaSerializer, UsuarioSerializer
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-# Create your views here.
+# WebSocket (Channels) imports
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
+# ----------------- ViewSets -----------------
 class MaquinaViewSet(viewsets.ModelViewSet):
     queryset = Maquina.objects.all()
     serializer_class = MaquinaSerializer
@@ -17,47 +18,34 @@ class MaquinaViewSet(viewsets.ModelViewSet):
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
-    
-#View para receber dados da maquina
-class DadosMaquinaCreateView(generics.CreateAPIView):
-    queryset = sensor_data_store.objects.all()
-    serializer_class = DadosMaquinaSerializer
 
-    def create(self, request, *args, **kwargs):
-        #Aqui podemos enviar os dados para a analise
-        dados = request.data
-        print(f"Dados recebidos para análise: {dados}")
-              
-        headers = self.get_sucess_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)
+# ----------------- Receber dados do simulador -----------------
+@api_view(['POST'])
+def dados_realtime(request):
+    dados = request.data
+    print(f"Dados recebidos para análise: {dados}")
 
-    
-#Parte para cuidar da autenticação
+    # Aqui enviamos para o front via WebSocket
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "dados_maquina",  # nome do grupo do WebSocket
+        {
+            "type": "send_dados",
+            "dados": dados
+        }
+    )
 
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def dados_protegidos(request):
-#     #Conteudo só pode ser visto por usuario autenticado
-#     content = {
-#         'message': f'Ola, {request.user.username}! Você está acessando uma área protegida.',
-#         'user_id': request.user.pk
-#     }
-#     return Response(content)
+    return Response({"message": "Dados recebidos e enviados para o front"}, status=status.HTTP_200_OK)
 
+# ----------------- Autenticação -----------------
 @api_view(['POST'])
 def login_check(request):
-    #Autentica o usuario a partir do username e senha
     username = request.data.get('username')
     password = request.data.get('password')
     
     user = authenticate(request, username=username, password=password)
     
-    if user is not None:
-        return Response({
-            'message': 'Login bem-sucedido.'
-            
-        }, status=status.HTTP_200_OK)
+    if user:
+        return Response({"message": "Login bem-sucedido."}, status=status.HTTP_200_OK)
     else:
-        return Response({
-            'error': 'Credenciais inválidas.'
-        }, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Credenciais inválidas."}, status=status.HTTP_400_BAD_REQUEST)

@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'corsheaders',
-    'rest_framework.authtoken' #Sistema de autenticação baseado em tokens, podemos usar para gerar acessos controlados a usuarios em hierarquias diferentes.
+    'rest_framework.authtoken', #Sistema de autenticação baseado em tokens, podemos usar para gerar acessos controlados a usuarios em hierarquias diferentes.
+    'channels', #Para WebSockets
 ]
 
 #Camada responsavel por fazer 
@@ -141,3 +142,11 @@ REST_FRAMEWORK = { #Configuração para autenticação padrão por Token no REST
     ],
 }
 
+ASGI_APPLICATION = 'maria_backend.asgi.application'
+
+# Definir o backend do Channels
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}

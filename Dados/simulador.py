@@ -69,8 +69,8 @@ def publish_data_to_mqtt(client, topic, data):
     except Exception as e:
         print(f"Erro ao publicar dados no MQTT: {e}")
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
+def on_connect(client, userdata, flags, rc, properties):
+    if rc == mqtt.MQTT_ERR_SUCCESS:
         print("Conectado ao broker MQTT com sucesso.")
     else:
         print(f"Falha ao conectar ao broker MQTT, código de retorno: {rc}")
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     client = mqtt.Client(protocol=mqtt.MQTTv5)
     client.on_connect = on_connect
-
+    
     try:
         client.connect(BROKER_ADDRESS, BROKER_PORT,60)
         client.loop_start()

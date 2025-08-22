@@ -7,12 +7,12 @@ import time
 # Configurações do Broker MQTT
 BROKER_ADDRESS = "localhost" #IP do broker
 BROKER_PORT = 1883
-TOPIC = "maquina/dados" #Mesmo topico para onde o simulador envia os dados
+TOPIC = "maquina/dados/#" #Mesmo topico para onde o simulador envia os dados
 
-DJANGO_API_URL = "http://localhost:8000/api/dados/" #rota Url onde vou receber os dados
+DJANGO_API_URL = "http://localhost:8000/core/dados/" #rota Url onde vou receber os dados
 
-def on_connet(client, userdata, flags, rc):
-    print(f"Conectado ao broker MQTT com código: {rc}")
+def on_connect(client, userdata, flags, reason_code, properties):
+    print(f"Conectado ao broker MQTT com código: {reason_code}")
     client.subscribe(TOPIC)
 
 def on_message(client, userdata, msg):
@@ -35,9 +35,11 @@ def on_message(client, userdata, msg):
         print(f"Erro ao enviar requisição HTTP para o Django: {e}")
 
 def main():
-    client = mqtt.Client(protocol=mqtt.MQTTv5)
-    client.on_connect = on_connet
+    client = mqtt.Client(protocol=mqtt.MQTTv5, transport="tcp", userdata=None, 
+                     callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
+    client.on_connect = on_connect
     client.on_message = on_message
+    
 
     #Tenta reconectar a cada 5 segundos
     while True:
