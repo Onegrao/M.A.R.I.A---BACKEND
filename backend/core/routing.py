@@ -1,16 +1,10 @@
-import os
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
-from django.core.asgi import get_asgi_application
-import core.routing
+# core/routing.py
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
+from django.urls import re_path
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack(
-        URLRouter(
-            core.routing.websocket_urlpatterns
-        )
-    ),
-})
+from . import consumers # Assumindo que seu consumidor está em core/consumers.py
+
+websocket_urlpatterns = [
+    # Esta rota precisa CASAR EXATAMENTE com a URL no seu Angular!
+    re_path(r'ws/data/$', consumers.DataConsumer.as_asgi()), 
+]
