@@ -146,7 +146,11 @@ ASGI_APPLICATION = 'maria_backend.asgi.application'
 
 # Definir o backend do Channels
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            # Conecta ao seu servidor Redis
+            "hosts": [('127.0.0.1', 6379)], 
+        },
     },
 }

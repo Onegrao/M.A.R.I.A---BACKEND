@@ -1,15 +1,24 @@
-#Script que ira se conectar com o servico mqtt que roda no docker
+# mqtt_listener.py
+
 import paho.mqtt.client as mqtt
-import requests
 import json
 import time
+import os
+import django
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import sys
 
-# Configurações do Broker MQTT
-BROKER_ADDRESS = "localhost" #IP do broker
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # adiciona o diretório atual ao PYTHONPATH
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.maria_backend.settings')
+
+
+# --- Configurações ---
+BROKER_ADDRESS = "localhost" 
 BROKER_PORT = 1883
-TOPIC = "maquina/dados/#" #Mesmo topico para onde o simulador envia os dados
-
-DJANGO_API_URL = "http://localhost:8000/core/dados/" #rota Url onde vou receber os dados
+TOPIC = "maquina/dados/#"
+CHANNEL_GROUP_NAME = 'realtime_machine_data' # DEVE CORRESPONDER ao Consumer
 
 def on_connect(client, userdata, flags, reason_code, properties):
     print(f"Conectado ao broker MQTT com código: {reason_code}")
@@ -19,36 +28,40 @@ def on_message(client, userdata, msg):
     try:
         payload_str = msg.payload.decode()
         data = json.loads(payload_str)
-        print(f"Dados recebidos do MQTT: {data}")
+        
+        # 1. Obtém o Channel Layer
+        channel_layer = get_channel_layer()
 
-        #Envia os dados para a API Django
-        response = requests.post(DJANGO_API_URL, json=data)
+        # 2. Envia a mensagem para o grupo de WebSockets
+        # O 'type': 'data.update' é o que dispara o método data_update no Consumer
+        async_to_sync(channel_layer.group_send)(
+            CHANNEL_GROUP_NAME,
+            {
+                'type': 'data.update',  
+                'text': json.dumps(data) # Envie a mensagem como string JSON
+            }
+        )
 
-        if response.status_code == 201: #Dados criados
-            print("Dados enviados ao Django com sucesso")
-        else:
-            print(f"Falha ao enviar os dados para o Django, erro: {response.status_code}" )
-    
+        print(f"MQTT para Channel Layer: {data}")
+
     except json.JSONDecodeError:
-        print(f"Erro ao decodificar O JSON: {msg.payload}")
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao enviar requisição HTTP para o Django: {e}")
+        print(f"Erro ao decodificar o JSON: {msg.payload}")
+    except Exception as e:
+        print(f"Erro ao enviar para o Channel Layer: {e}")
 
 def main():
     client = mqtt.Client(protocol=mqtt.MQTTv5, transport="tcp", userdata=None, 
-                     callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
+                         callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
     client.on_connect = on_connect
     client.on_message = on_message
     
-
-    #Tenta reconectar a cada 5 segundos
     while True:
         try:
             client.connect(BROKER_ADDRESS, BROKER_PORT, 60)
             break
         except Exception as e:
-            print(f"Falha ao conectar ao broker MQTT: {e}. Tentando novamente em 5 segundos...")
             time.sleep(5)
+            
     client.loop_forever()
 
 if __name__ == "__main__":
