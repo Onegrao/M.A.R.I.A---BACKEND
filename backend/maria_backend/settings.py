@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-6i84-^!ge76312%5u737b9$is-3gt)$901e9i&j*y5eqa6e38a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,8 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core',
+    'rest_framework',
+    'corsheaders',
+    'rest_framework.authtoken', #Sistema de autenticação baseado em tokens, podemos usar para gerar acessos controlados a usuarios em hierarquias diferentes.
+    'channels', #Para WebSockets
 ]
 
+#Camada responsavel por fazer 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -47,7 +53,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware', 
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True #Para desenvolvimento, você pode permitir todas as origens, mas em produção é melhor deixar definido quais origens podem fazer requisições para o backend.
 
 ROOT_URLCONF = 'maria_backend.urls'
 
@@ -120,3 +129,28 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Serve para uso do modelo usuario em /core/models/usuario.py
+AUTH_USER_MODEL = 'core.Usuario'
+
+REST_FRAMEWORK = { #Configuração para autenticação padrão por Token no REST_FRAMEWORK
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        #'rest_framework.authentication.TokenAuthentication', #Deixando apenas comentado para posteiormente utilizar autenticação e deixar seguro
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny', #IsAuthenticated quando for autenticado
+    ],
+}
+
+ASGI_APPLICATION = 'maria_backend.asgi.application'
+
+# Definir o backend do Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            # Conecta ao seu servidor Redis
+            "hosts": [('127.0.0.1', 6379)], 
+        },
+    },
+}
